@@ -7,12 +7,12 @@ from metaflow import Run, Runner
 
 @pytest.fixture(scope="module")
 def metaflow_data():
-    with Runner("tests/flowmixin_flow.py", show_output=False).run() as running:
+    with Runner("flowmixin_flow.py", show_output=False).run() as running:
         return Run(running.run.pathspec).data
 
 
 def test_load_dataset(metaflow_data):
-    penguins = pd.read_csv(Path("data/penguins.csv"))
+    penguins = pd.read_csv(Path("../data/penguins.csv"))
     assert len(metaflow_data.data) == len(penguins)
 
 

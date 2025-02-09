@@ -1,4 +1,6 @@
 import pytest
+import tensorflow as tf
+from tensorflow import keras
 from keras import optimizers
 
 from pipelines.common import build_model
