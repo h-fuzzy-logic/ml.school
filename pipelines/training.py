@@ -89,6 +89,15 @@ class Training(FlowSpec, DatasetMixin):
             # to set the name of the MLflow run to the Metaflow run ID so we can easily
             # recognize how they relate to each other.
             run = mlflow.start_run(run_name=current.run_id)
+            dataset_path = "data/penguins_processed.csv"
+            self.data.to_csv(dataset_path, index=False)
+            mlflow.log_artifact(dataset_path, artifact_path="data")
+
+            mlflow.log_table(
+                data=self.data,
+                artifact_file="data/penguins.json"
+            )
+
             self.mlflow_run_id = run.info.run_id
         except Exception as e:
             message = f"Failed to connect to MLflow server {self.mlflow_tracking_uri}."

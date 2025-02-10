@@ -12,7 +12,7 @@ def metaflow_data():
 
 
 def test_load_dataset(metaflow_data):
-    penguins = pd.read_csv(Path("../data/penguins.csv"))
+    penguins = pd.read_csv(Path("data/penguins.csv"))
     assert len(metaflow_data.data) == len(penguins)
 
 

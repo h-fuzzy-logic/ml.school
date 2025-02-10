@@ -28,7 +28,7 @@ class DatasetMixin:
         "dataset",
         is_text=True,
         help="Dataset that will be used to train the model.",
-        default="../data/penguins.csv",
+        default="data/penguins.csv",
     )
 
     def load_dataset(self):
@@ -51,7 +51,7 @@ class DatasetMixin:
         data = data.sample(frac=1, random_state=generator)
 
         logging.info("Loaded dataset with %d samples", len(data))
-
+        
         return data
 
 
