@@ -54,6 +54,30 @@ class DatasetMixin:
         
         return data
 
+    def load_dataset_limited(self):
+            """Load and prepare the dataset."""
+            import numpy as np
+
+            # The raw data is passed as a string, so we need to convert it into a DataFrame.
+            data = pd.read_csv(StringIO(self.dataset))
+
+            # Replace extraneous values in the sex column with NaN. We can handle missing
+            # values later in the pipeline.
+            #data["sex"] = data["sex"].replace(".", np.nan)
+            # Drop sex column
+            data = data.drop('sex', axis=1)
+
+            # We want to shuffle the dataset. For reproducibility, we can fix the seed value
+            # when running in development mode. When running in production mode, we can use
+            # the current time as the seed to ensure a different shuffle each time the
+            # pipeline is executed.
+            seed = int(time.time() * 1000) if current.is_production else 42
+            generator = np.random.default_rng(seed=seed)
+            data = data.sample(frac=1, random_state=generator)
+
+            logging.info("Loaded dataset with %d samples", len(data))
+            
+            return data
 
 def packages(*names: str):
     """Return a dictionary of the specified packages and their corresponding version.
@@ -116,6 +140,46 @@ def build_features_transformer():
                 # categorical column. To accomplish this, we can specify the column
                 # names we only want to encode.
                 ["island", "sex"],
+            ),
+        ],
+    )
+
+def build_features_limited_transformer():
+    """Build a Scikit-Learn transformer to preprocess the feature columns."""
+    from sklearn.compose import ColumnTransformer, make_column_selector
+    from sklearn.impute import SimpleImputer
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+    numeric_transformer = make_pipeline(
+        SimpleImputer(strategy="mean"),
+        StandardScaler(),
+    )
+
+    categorical_transformer = make_pipeline(
+        SimpleImputer(strategy="most_frequent"),
+        # We can use the `handle_unknown="ignore"` parameter to ignore unseen categories
+        # during inference. When encoding an unknown category, the transformer will
+        # return an all-zero vector.
+        OneHotEncoder(handle_unknown="ignore"),
+    )
+
+    return ColumnTransformer(
+        transformers=[
+            (
+                "numeric",
+                numeric_transformer,
+                # We'll apply the numeric transformer to all columns that are not
+                # categorical (object).
+                make_column_selector(dtype_exclude="object"),
+            ),
+            (
+                "categorical",
+                categorical_transformer,
+                # We want to make sure we ignore the target column which is also a
+                # categorical column. To accomplish this, we can specify the column
+                # names we only want to encode.
+                ["island"],
             ),
         ],
     )

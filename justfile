@@ -45,6 +45,11 @@ test:
     uv run -- python pipelines/training.py \
         --environment conda run
 
+[group('training')]
+@train-limited:
+    uv run -- python pipelines/training-limited.py \
+        --environment conda run
+
 # Run training pipeline card server 
 [group('training')]
 @train-viewer:
